@@ -1,8 +1,7 @@
-// package gResty
+package gResty
+
 // go http client support get,post,delete,patch,put,head method
 // author:daheige
-
-package gResty
 
 import (
 	"encoding/json"
@@ -13,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-resty/resty/v2"
+	resty "github.com/go-resty/resty/v2"
 )
 
 //默认请求超时
