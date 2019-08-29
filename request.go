@@ -205,7 +205,7 @@ func (s *Service) GetResult(resp *resty.Response, err error) *Reply {
 	//请求返回的body
 	res.Body = resp.Body()
 	if !resp.IsSuccess() || resp.StatusCode() != 200 {
-		res.Err = errors.New("http StatusCode: " + strconv.Itoa(resp.StatusCode()) + "status: " + resp.Status())
+		res.Err = errors.New("request error: " + fmt.Sprintf("%v", resp.Error()) + "http StatusCode: " + strconv.Itoa(resp.StatusCode()) + "status: " + resp.Status())
 		return res
 	}
 
