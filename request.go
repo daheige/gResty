@@ -1,18 +1,20 @@
 package gResty
 
-// go http client support get,post,delete,patch,put,head method
-// author:daheige
+// go http client support get,post,delete,patch,put,head,file method
+// go-resty/resty: https://github.com/go-resty/resty
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	resty "github.com/go-resty/resty/v2"
+	"github.com/go-resty/resty/v2"
 )
 
 //默认请求超时
@@ -23,13 +25,13 @@ type Service struct {
 	BaseUri         string        //请求地址url的前缀
 	Timeout         time.Duration //请求超时限制
 	Proxy           string        //请求设置的http_proxy代理
-	EnableKeepAlive bool          //开始开启长连接
+	EnableKeepAlive bool          //是否允许长连接方式请求接口，默认短连接方式
 }
 
 // ReqOpt 请求参数设置
 type ReqOpt struct {
 	Params  map[string]interface{} //get,delete的Params参数
-	Data    map[string]interface{} //post请求的data表单数据
+	Data    map[string]interface{} //post请求form data表单数据
 	Headers map[string]interface{} //header头信息
 
 	//cookie参数设置
@@ -41,7 +43,12 @@ type ReqOpt struct {
 
 	//支持post,put,patch以json格式传递,[]int{1, 2, 3},map[string]string{"a":"b"}格式
 	//json支持[],{}数据格式,主要是golang的基本数据类型，就可以
+	//直接调用SetBody方法，自动添加header头"Content-Type":"application/json"
 	Json interface{}
+
+	//支持文件上传的参数
+	FileName      string //文件名称
+	FileParamName string //文件上传的表单file参数名称
 }
 
 // Reply 请求后的结果
@@ -163,9 +170,18 @@ func (s *Service) Do(method string, reqUrl string, opt *ReqOpt) *Reply {
 	case "post", "put", "patch":
 		req := client.R()
 		if len(opt.Data) > 0 {
-			req = req.SetBody(opt.Data)
+			// SetFormData method sets Form parameters and their values in the current request.
+			// It's applicable only HTTP method `POST` and `PUT` and requests content type would be
+			// set as `application/x-www-form-urlencoded`.
+
+			req = req.SetFormData(opt.ParseData(opt.Data))
 		}
 
+		//setBody: for struct and map data type defaults to 'application/json'
+		// SetBody method sets the request body for the request. It supports various realtime needs as easy.
+		// We can say its quite handy or powerful. Supported request body data types is `string`,
+		// `[]byte`, `struct`, `map`, `slice` and `io.Reader`. Body value can be pointer or non-pointer.
+		// Automatic marshalling for JSON and XML content type, if it is `struct`, `map`, or `slice`.
 		if opt.Json != nil {
 			req = req.SetBody(opt.Json)
 		}
@@ -184,13 +200,32 @@ func (s *Service) Do(method string, reqUrl string, opt *ReqOpt) *Reply {
 			resp, err = req.Patch(reqUrl)
 			return s.GetResult(resp, err)
 		}
+	case "file":
+		b, err := ioutil.ReadFile(opt.FileName)
+		if err != nil {
+			return &Reply{
+				Err: errors.New("read file error: " + err.Error()),
+			}
+		}
 
+		//文件上传
+		resp, err := client.R().
+			SetFileReader(opt.FileParamName, opt.FileName, bytes.NewReader(b)).
+			Post(reqUrl)
+		return s.GetResult(resp, err)
 	default:
 	}
 
 	return &Reply{
 		Err: errors.New("request method not support"),
 	}
+}
+
+// NewClient创建一个resty客户端，支持post,get,delete,head,put,patch,file文件上传等
+// 可以快速使用go-resty/resty上面的方法
+// 参考文档： https://github.com/go-resty/resty
+func NewClient() *resty.Client {
+	return resty.New()
 }
 
 // GetData 处理请求的结果

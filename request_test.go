@@ -36,7 +36,11 @@ func TestRequest(t *testing.T) {
 	log.Println(data.Code, data.Message)
 	log.Println(data.Data)
 
-	res = s.Do("post", "http://localhost:1338/v1/data", nil)
+	res = s.Do("post", "http://localhost:1338/v1/data", &ReqOpt{
+		Data: map[string]interface{}{
+			"id": "1234",
+		},
+	})
 	if res.Err != nil {
 		log.Println("err: ", res.Err)
 		return
@@ -47,7 +51,7 @@ func TestRequest(t *testing.T) {
 
 /**
 $ go test -v
-2019/08/29 22:44:03 <nil> {"code":0,"data":["golang","php"],"message":"ok"}
---- PASS: TestRequest (0.26s)
+2019/08/31 15:25:10 <nil> {"code":0,"data":["js","php","hello"],"message":"ok"}
+--- PASS: TestRequest (0.25s)
 PASS
 */
