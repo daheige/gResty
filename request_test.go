@@ -20,6 +20,7 @@ func TestRequest(t *testing.T) {
 			"objtype": 1,
 			"p":       0,
 		},
+		RetryCount: 2,
 	}
 
 	res := s.Do("get", "https://studygolang.com/object/comments", opt)
