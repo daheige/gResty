@@ -41,6 +41,7 @@ func TestRequest(t *testing.T) {
 		Data: map[string]interface{}{
 			"id": "1234",
 		},
+		RetryCount: 2, //重试次数
 	})
 	if res.Err != nil {
 		log.Println("err: ", res.Err)
@@ -52,7 +53,8 @@ func TestRequest(t *testing.T) {
 
 /**
 $ go test -v
-2019/08/31 15:25:10 <nil> {"code":0,"data":["js","php","hello"],"message":"ok"}
---- PASS: TestRequest (0.25s)
+2019/08/31 21:26:31 <nil> {"code":0,"data":["js","php","hello"],"message":"ok"}
+--- PASS: TestRequest (0.28s)
 PASS
+ok      github.com/daheige/gResty       0.283s
 */
