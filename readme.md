@@ -9,12 +9,12 @@
 
         import "github.com/daheige/gResty"
 
-        s := &httpRequest.Service{
+        s := &gResty.Service{
             BaseUri: "http://localhost:1338/",
             Timeout: 2 * time.Second,
         }
 
-        opt := &httpRequest.ReqOpt{
+        opt := &gResty.ReqOpt{
             Data: map[string]interface{}{
                 "id": "1234",
             },
